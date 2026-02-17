@@ -12,9 +12,7 @@ const handler = NextAuth({
         password: { label: 'Senha', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
@@ -25,7 +23,6 @@ const handler = NextAuth({
         const isValid = await compare(credentials.password, user.password);
         if (!isValid) return null;
 
-        // Resetar contador mensal se necessário
         const now = new Date();
         const lastReset = new Date(user.lastReset);
         const shouldReset =
@@ -59,3 +56,14 @@ const handler = NextAuth({
 });
 
 export { handler as GET, handler as POST };
+```
+
+5. Commit: `Add NextAuth route handler`
+
+---
+
+## ⚠️ IMPORTANTE: Nome da Pasta
+
+O nome da pasta **DEVE** ter os colchetes:
+```
+[...nextauth]
