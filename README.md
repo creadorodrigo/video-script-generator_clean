@@ -92,3 +92,22 @@ Este projeto está pronto para deploy na Vercel!
 ## 🎯 Custo Estimado
 
 ~$0.12/mês para 20 gerações usando Claude Haiku
+
+## 🛠️ Troubleshooting de Deploy (Vercel)
+
+### Erro após login redirecionando para `/api/auth/error`
+Se aparecer tela de erro após enviar e-mail/senha, normalmente é configuração de ambiente:
+
+1. **`NEXTAUTH_SECRET` obrigatório em produção**
+   - Sem esse valor, o NextAuth retorna erro de configuração (`NO_SECRET`) e redireciona para a página de erro.
+2. **`NEXTAUTH_URL`** deve apontar para a URL pública do projeto
+   - Ex.: `https://video-script-generator-clean.vercel.app`
+3. **`DATABASE_URL`** da Supabase/Postgres com SSL
+   - Recomendado: incluir `?sslmode=require`
+4. Após salvar variáveis na Vercel, faça **Redeploy**.
+
+Exemplo de `DATABASE_URL` (com SSL):
+
+```bash
+postgresql://postgres:SUA_SENHA@db.seu-projeto.supabase.co:5432/postgres?sslmode=require
+```

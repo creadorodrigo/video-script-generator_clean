@@ -12,10 +12,10 @@ model User {
   email           String   @unique
   name            String
   password        String
-  generationsUsed Int      @default(0)
-  lastReset       DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  generationsUsed Int      @default(0) @map("generations_used")
+  lastReset       DateTime @default(now()) @map("last_reset")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   patterns VideoPattern[]
   scripts  GeneratedScript[]
@@ -27,33 +27,33 @@ model VideoPattern {
   id          String   @id @default(cuid())
   title       String
   description String?
-  videoUrls   Json
+  videoUrls   Json     @map("video_urls")
   analysis    Json
   tags        String[]
-  isFavorite  Boolean  @default(false)
-  userId      String
+  isFavorite  Boolean  @default(false) @map("is_favorite")
+  userId      String   @map("user_id")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scripts     GeneratedScript[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@index([userId])
+  @@index([userId], map: "idx_video_patterns_user_id")
   @@map("video_patterns")
 }
 
 model GeneratedScript {
   id                   String        @id @default(cuid())
-  newTheme             Json
+  newTheme             Json          @map("new_theme")
   settings             Json
   scripts              Json
-  consolidatedAnalysis Json
-  patternId            String?
+  consolidatedAnalysis Json          @map("consolidated_analysis")
+  patternId            String?       @map("pattern_id")
   pattern              VideoPattern? @relation(fields: [patternId], references: [id], onDelete: SetNull)
-  userId               String
+  userId               String        @map("user_id")
   user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt            DateTime      @default(now())
+  createdAt            DateTime      @default(now()) @map("created_at")
 
-  @@index([userId])
+  @@index([userId], map: "idx_generated_scripts_user_id")
   @@index([patternId])
   @@map("generated_scripts")
 }
