@@ -157,12 +157,16 @@ export async function POST(request: NextRequest) {
     const stack = error instanceof Error ? error.stack : undefined;
     console.error('[generate] ERRO NÃO CAPTURADO:', message);
     if (stack) console.error('[generate] Stack:', stack);
+
+    const isBillingError = message.includes('credit balance is too low') || message.includes('billing');
     return NextResponse.json(
       {
-        error: 'Erro interno ao processar',
-        message,
+        error: isBillingError
+          ? 'Saldo de créditos da API insuficiente. Entre em contato com o administrador.'
+          : 'Erro interno ao processar',
+        message: isBillingError ? undefined : message,
       },
-      { status: 500 }
+      { status: isBillingError ? 503 : 500 }
     );
   }
 }
