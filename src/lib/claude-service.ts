@@ -150,8 +150,10 @@ export async function extractYouTubeTranscription(url: string): Promise<string> 
     const { YoutubeTranscript } = await import('youtube-transcript');
     const transcript = await YoutubeTranscript.fetchTranscript(videoId);
     return transcript.map((item: any) => item.text).join(' ');
-  } catch {
-    return `Transcrição do vídeo YouTube (ID: ${videoId}). Conteúdo sobre o tema principal do vídeo.`;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'erro desconhecido';
+    console.warn(`[youtube-transcript] Vídeo ${videoId}: transcrição indisponível (${reason}). Usando fallback.`);
+    return '';
   }
 }
 

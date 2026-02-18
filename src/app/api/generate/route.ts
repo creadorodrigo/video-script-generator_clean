@@ -67,13 +67,17 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Extrair transcrições
-    const transcriptions = await Promise.all(
+    const warnings: string[] = [];
+    const rawTranscriptions = await Promise.all(
       videos_referencia.map(async (video: { url: string; platform?: string }) => {
         const platform = video.platform || identifyPlatform(video.url);
         let text = '';
 
         if (platform === 'youtube') {
           text = await extractYouTubeTranscription(video.url);
+          if (!text) {
+            warnings.push(`Vídeo "${video.url}" não possui legendas/transcrição disponíveis e foi ignorado.`);
+          }
         } else {
           // Mock para Instagram/TikTok (implementar Whisper futuramente)
           text = `Conteúdo de vídeo ${platform}: Este vídeo mostra estratégias de marketing digital com alto engajamento. O criador usa técnicas de storytelling, prova social e urgência para converter a audiência.`;
@@ -82,6 +86,16 @@ export async function POST(request: NextRequest) {
         return { platform, text };
       })
     );
+
+    // Filtrar vídeos sem transcrição
+    const transcriptions = rawTranscriptions.filter(t => t.text.length > 0);
+
+    if (transcriptions.length === 0) {
+      return NextResponse.json(
+        { error: 'Nenhum vídeo com transcrição disponível. Use vídeos do YouTube com legendas ativadas.' },
+        { status: 422 }
+      );
+    }
 
     // 6. Analisar padrões com Claude
     const analysis = await analyzePatterns(transcriptions);
@@ -115,6 +129,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       analise_consolidada: analysis,
       roteiros_gerados: scripts,
+      avisos: warnings.length > 0 ? warnings : undefined,
       uso: {
         geracoes_usadas: userId === 'anonymous' ? 0 : undefined,
         limite_mensal: MAX_GENERATIONS,
