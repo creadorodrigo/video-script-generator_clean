@@ -20,12 +20,12 @@ export async function analyzePatterns(transcriptions: { platform: string; text: 
     messages: [
       {
         role: 'user',
-        content: `Você é um especialista em copywriting para vídeos virais.
+        content: `Você é um estrategista de conteúdo viral com expertise em análise de padrões comportamentais em vídeos de alta performance. Sua análise deve ser cirúrgica e acionável — identifique apenas o que realmente faz esses vídeos converterem.
 
 VÍDEOS DE REFERÊNCIA:
 ${videosText}
 
-Analise esses ${transcriptions.length} vídeos e identifique os padrões vencedores.
+Analise esses ${transcriptions.length} vídeos e extraia os padrões vencedores com precisão estratégica.
 
 RETORNE APENAS um objeto JSON válido (sem markdown):
 {
@@ -69,8 +69,22 @@ RETORNE APENAS um objeto JSON válido (sem markdown):
 export async function generateScripts(
   analysis: any,
   theme: { tipo: string; conteudo: string; publico_alvo?: string; objetivo?: string },
-  settings: { num_variacoes: number; duracao_video: string; plataforma_principal: string }
+  settings: { num_variacoes: number; duracao_video: string; plataforma_principal: string },
+  restricoes_producao?: string,
+  inteligencia?: { total_geracoes: number; roteiros_excelentes: any[] } | null
 ) {
+  const restricoesSection = restricoes_producao?.trim()
+    ? `\n[RESTRIÇÕES DE PRODUÇÃO — OBRIGATÓRIO RESPEITAR EM TODOS OS ROTEIROS]
+${restricoes_producao.trim()}
+Cada roteiro gerado DEVE ser 100% executável dentro dessas restrições. Não crie roteiros que as violem.\n`
+    : '';
+
+  const inteligenciaSection = inteligencia && inteligencia.roteiros_excelentes.length > 0
+    ? `\n[INTELIGÊNCIA ACUMULADA — ${inteligencia.total_geracoes} gerações anteriores deste usuário]
+Os roteiros abaixo já provaram ter alta performance (score ≥ 8.0). Use-os como referência de qualidade e padrão de excelência — não os copie, mas absorva o que os fez funcionar:
+${JSON.stringify(inteligencia.roteiros_excelentes, null, 2)}\n`
+    : '';
+
   const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -78,22 +92,23 @@ export async function generateScripts(
     messages: [
       {
         role: 'user',
-        content: `Você é um copywriter expert em vídeos de alta conversão.
+        content: `Você é um copywriter de elite com 15 anos de experiência criando roteiros de vídeos de alta conversão para as principais plataformas digitais. Você domina neuromarketing, storytelling estratégico e psicologia do consumidor. Cada palavra que você escreve é calculada para maximizar retenção e conversão. Você não cria conteúdo genérico — você cria roteiros que param o scroll e convertem.
 
-PADRÕES VENCEDORES IDENTIFICADOS:
+[PADRÕES VENCEDORES IDENTIFICADOS NOS VÍDEOS DE REFERÊNCIA]
 ${JSON.stringify(analysis, null, 2)}
 
-NOVO PRODUTO/TEMA:
-${theme.tipo === 'descricao' ? theme.conteudo : `Link: ${theme.conteudo}`}
+[PRODUTO/TEMA]
+${theme.tipo === 'descricao' ? theme.conteudo : `Link do produto: ${theme.conteudo}`}
 ${theme.publico_alvo ? `Público-alvo: ${theme.publico_alvo}` : ''}
-${theme.objetivo ? `Objetivo: ${theme.objetivo}` : ''}
+${theme.objetivo ? `Objetivo principal: ${theme.objetivo}` : ''}
 
-CONFIGURAÇÕES:
+[CONFIGURAÇÕES DE PRODUÇÃO]
 - Duração: ${settings.duracao_video}
 - Plataforma: ${settings.plataforma_principal}
-- Número de variações: ${settings.num_variacoes}
-
-Crie ${settings.num_variacoes} roteiros DIFERENTES aplicando os padrões vencedores.
+- Variações solicitadas: ${settings.num_variacoes}
+${restricoesSection}${inteligenciaSection}
+[MISSÃO]
+Crie ${settings.num_variacoes} roteiros DISTINTOS — cada um com uma abordagem, gancho e estrutura narrativa diferente. Aplique os padrões vencedores identificados. Cada roteiro deve ser pronto para gravar, com linguagem natural e fluida.
 
 RETORNE APENAS um array JSON válido (sem markdown):
 [
@@ -120,7 +135,7 @@ RETORNE APENAS um array JSON válido (sem markdown):
       "timing": "55-60s",
       "tipo": "urgencia"
     },
-    "notas_criacao": "Explicação de por que este roteiro funciona"
+    "notas_criacao": "Explicação estratégica de por que este roteiro converte"
   }
 ]`,
       },

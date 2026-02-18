@@ -21,6 +21,7 @@ export default function Home() {
   
   const [videos, setVideos] = useState<VideoInput[]>([{ url: '', platform: 'youtube' }]);
   const [tema, setTema] = useState({ tipo: 'descricao', conteudo: '', publico_alvo: '', objetivo: '' });
+  const [restricoes, setRestricoes] = useState('');
   const [config, setConfig] = useState({ num_variacoes: 7, duracao_video: '60-90s' as DuracaoVideo, plataforma_principal: 'todas' as PlataformaPrincipal });
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
@@ -61,6 +62,7 @@ export default function Home() {
           videos_referencia: videos.filter(v => v.url.length > 0),
           novo_tema: tema,
           configuracoes: config,
+          restricoes_producao: restricoes.trim() || undefined,
         }),
       });
 
@@ -117,7 +119,7 @@ export default function Home() {
                 <p>Restantes: {results.uso?.restantes}</p>
               </div>
             </div>
-            <button onClick={() => { setResults(null); setVideos([{ url: '', platform: 'youtube' }]); setTema({ tipo: 'descricao', conteudo: '', publico_alvo: '', objetivo: '' }); }}
+            <button onClick={() => { setResults(null); setVideos([{ url: '', platform: 'youtube' }]); setTema({ tipo: 'descricao', conteudo: '', publico_alvo: '', objetivo: '' }); setRestricoes(''); }}
               className="mt-4 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               🔄 Gerar Novos Roteiros
             </button>
@@ -310,6 +312,20 @@ export default function Home() {
                 </select>
               </div>
             </div>
+          </div>
+
+          {/* Restrições de Produção */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-1">🎬 Restrições e Contexto de Produção</h2>
+            <p className="text-gray-500 text-sm mb-4">Opcional — informe limitações ou condições que os roteiros devem respeitar</p>
+            <textarea
+              value={restricoes}
+              onChange={(e) => setRestricoes(e.target.value.slice(0, 500))}
+              placeholder="Ex: Apenas 1 pessoa disponível para gravar, sem crianças nos vídeos, sem locação externa, gravação em ambiente doméstico, orçamento zero para produção..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+            />
+            <p className="text-xs text-gray-400 mt-1 text-right">{restricoes.length}/500</p>
           </div>
 
           {/* Configurações */}

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Ler dados da requisição
     const body = await request.json();
-    const { videos_referencia, novo_tema, configuracoes } = body;
+    const { videos_referencia, novo_tema, configuracoes, restricoes_producao } = body;
 
     // 4. Validações básicas
     if (!novo_tema?.conteudo || novo_tema.conteudo.length < 20) {
@@ -114,9 +114,44 @@ export async function POST(request: NextRequest) {
     const analysis = await analyzePatterns(transcriptions);
     console.log('[generate] analyzePatterns concluído');
 
+    // 6.5 Buscar inteligência acumulada do usuário (só para usuários autenticados)
+    let inteligenciaAcumulada: { total_geracoes: number; roteiros_excelentes: any[] } | null = null;
+    if (userId !== 'anonymous') {
+      const historicoRecente = await prisma.generatedScript.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { scripts: true },
+      });
+
+      if (historicoRecente.length > 0) {
+        const roteirosExcelentes = historicoRecente.flatMap((h) => {
+          const scripts = h.scripts as any[];
+          return Array.isArray(scripts)
+            ? scripts.filter((s) => s.score_aderencia >= 8.0).slice(0, 2)
+            : [];
+        });
+
+        if (roteirosExcelentes.length > 0) {
+          inteligenciaAcumulada = {
+            total_geracoes: historicoRecente.length,
+            roteiros_excelentes: roteirosExcelentes.map((s) => ({
+              gancho: s.gancho?.texto,
+              tipo_gancho: s.gancho?.tipo,
+              estrutura: s.corpo?.estrutura,
+              cta_tipo: s.cta?.tipo,
+              score: s.score_aderencia,
+              notas: s.notas_criacao,
+            })),
+          };
+          console.log(`[generate] Inteligência acumulada: ${roteirosExcelentes.length} roteiros excelentes de ${historicoRecente.length} gerações anteriores`);
+        }
+      }
+    }
+
     // 7. Gerar roteiros com Claude
     console.log('[generate] Chamando generateScripts...');
-    const scripts = await generateScripts(analysis, novo_tema, configuracoes);
+    const scripts = await generateScripts(analysis, novo_tema, configuracoes, restricoes_producao, inteligenciaAcumulada);
     console.log('[generate] generateScripts concluído');
 
     // 8. Salvar no banco (só se o usuário estiver logado)

@@ -14,6 +14,7 @@ export interface NovoTema {
   conteudo: string;
   publico_alvo?: string;
   objetivo?: Objetivo;
+  restricoes_producao?: string;
 }
 
 export interface ConfiguracoesGeracao {
