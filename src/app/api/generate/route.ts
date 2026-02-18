@@ -68,22 +68,30 @@ export async function POST(request: NextRequest) {
 
     // 5. Extrair transcrições
     const warnings: string[] = [];
+    console.log('[generate] Iniciando extração de transcrições:', videos_referencia.map((v: { url: string }) => v.url));
+
     const rawTranscriptions = await Promise.all(
       videos_referencia.map(async (video: { url: string; platform?: string }) => {
         const platform = video.platform || identifyPlatform(video.url);
         let text = '';
 
-        if (platform === 'youtube') {
-          const result = await extractYouTubeTranscription(video.url);
-          text = result.text;
-          if (result.fallback && text) {
-            warnings.push(`Vídeo "${video.url}" sem legendas — análise feita com base no título (menos precisa).`);
-          } else if (result.fallback && !text) {
-            warnings.push(`Vídeo "${video.url}" sem legendas e sem metadados disponíveis — foi ignorado.`);
+        try {
+          if (platform === 'youtube') {
+            const result = await extractYouTubeTranscription(video.url);
+            text = result.text;
+            console.log(`[generate] ${video.url} → fallback=${result.fallback}, chars=${text.length}`);
+            if (result.fallback && text) {
+              warnings.push(`Vídeo "${video.url}" sem legendas — análise feita com base no título (menos precisa).`);
+            } else if (result.fallback && !text) {
+              warnings.push(`Vídeo "${video.url}" sem legendas e sem metadados disponíveis — foi ignorado.`);
+            }
+          } else {
+            // Mock para Instagram/TikTok (implementar Whisper futuramente)
+            text = `Conteúdo de vídeo ${platform}: Este vídeo mostra estratégias de marketing digital com alto engajamento. O criador usa técnicas de storytelling, prova social e urgência para converter a audiência.`;
           }
-        } else {
-          // Mock para Instagram/TikTok (implementar Whisper futuramente)
-          text = `Conteúdo de vídeo ${platform}: Este vídeo mostra estratégias de marketing digital com alto engajamento. O criador usa técnicas de storytelling, prova social e urgência para converter a audiência.`;
+        } catch (videoError) {
+          console.error(`[generate] Erro ao processar vídeo ${video.url}:`, videoError instanceof Error ? videoError.stack : videoError);
+          warnings.push(`Vídeo "${video.url}" não pôde ser processado — foi ignorado.`);
         }
 
         return { platform, text };
@@ -92,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     // Filtrar vídeos sem transcrição
     const transcriptions = rawTranscriptions.filter(t => t.text.length > 0);
+    console.log(`[generate] Transcrições válidas: ${transcriptions.length}/${rawTranscriptions.length}`);
 
     if (transcriptions.length === 0) {
       return NextResponse.json(
@@ -101,10 +110,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. Analisar padrões com Claude
+    console.log('[generate] Chamando analyzePatterns...');
     const analysis = await analyzePatterns(transcriptions);
+    console.log('[generate] analyzePatterns concluído');
 
     // 7. Gerar roteiros com Claude
+    console.log('[generate] Chamando generateScripts...');
     const scripts = await generateScripts(analysis, novo_tema, configuracoes);
+    console.log('[generate] generateScripts concluído');
 
     // 8. Salvar no banco (só se o usuário estiver logado)
     let savedResult = null;
@@ -140,11 +153,14 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Erro ao gerar roteiros:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error('[generate] ERRO NÃO CAPTURADO:', message);
+    if (stack) console.error('[generate] Stack:', stack);
     return NextResponse.json(
       {
         error: 'Erro interno ao processar',
-        message: error instanceof Error ? error.message : 'Erro desconhecido',
+        message,
       },
       { status: 500 }
     );
