@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
   analyzePatterns,
@@ -13,7 +14,7 @@ const MAX_GENERATIONS = parseInt(process.env.MAX_GENERATIONS_PER_USER_MONTH || '
 export async function POST(request: NextRequest) {
   try {
     // 1. Verificar autenticação (OPCIONAL agora)
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     let userId = 'anonymous'; // ✅ Usuário padrão para sistema aberto
     
     if (session?.user?.email) {

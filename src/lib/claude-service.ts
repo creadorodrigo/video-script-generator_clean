@@ -1,14 +1,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+function getAnthropicClient() {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY não configurada. Adicione-a no arquivo .env.local');
+  }
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 
 export async function analyzePatterns(transcriptions: { platform: string; text: string }[]) {
   const videosText = transcriptions
     .map((t, i) => `VÍDEO ${i + 1} (${t.platform.toUpperCase()}):\n${t.text}`)
     .join('\n\n---\n\n');
 
+  const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 2000,
@@ -62,6 +66,7 @@ export async function generateScripts(
   theme: { tipo: string; conteudo: string; publico_alvo?: string; objetivo?: string },
   settings: { num_variacoes: number; duracao_video: string; plataforma_principal: string }
 ) {
+  const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 4000,
