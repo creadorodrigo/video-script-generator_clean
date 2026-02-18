@@ -74,9 +74,12 @@ export async function POST(request: NextRequest) {
         let text = '';
 
         if (platform === 'youtube') {
-          text = await extractYouTubeTranscription(video.url);
-          if (!text) {
-            warnings.push(`Vídeo "${video.url}" não possui legendas/transcrição disponíveis e foi ignorado.`);
+          const result = await extractYouTubeTranscription(video.url);
+          text = result.text;
+          if (result.fallback && text) {
+            warnings.push(`Vídeo "${video.url}" sem legendas — análise feita com base no título (menos precisa).`);
+          } else if (result.fallback && !text) {
+            warnings.push(`Vídeo "${video.url}" sem legendas e sem metadados disponíveis — foi ignorado.`);
           }
         } else {
           // Mock para Instagram/TikTok (implementar Whisper futuramente)
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     if (transcriptions.length === 0) {
       return NextResponse.json(
-        { error: 'Nenhum vídeo com transcrição disponível. Use vídeos do YouTube com legendas ativadas.' },
+        { error: 'Não foi possível obter nenhuma informação dos vídeos fornecidos. Verifique os links e tente novamente.' },
         { status: 422 }
       );
     }

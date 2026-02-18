@@ -131,8 +131,22 @@ RETORNE APENAS um array JSON válido (sem markdown):
   return JSON.parse(jsonMatch[0]);
 }
 
-export async function extractYouTubeTranscription(url: string): Promise<string> {
-  // Extrai o ID do vídeo
+async function getYouTubeMetadata(videoId: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
+    );
+    if (!res.ok) return '';
+    const data = await res.json();
+    return `Vídeo do YouTube: "${data.title}" por ${data.author_name}. Legenda indisponível — análise baseada no título do vídeo.`;
+  } catch {
+    return '';
+  }
+}
+
+export async function extractYouTubeTranscription(
+  url: string
+): Promise<{ text: string; fallback: boolean }> {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
     /youtube\.com\/embed\/([^&\n?#]+)/,
@@ -149,11 +163,12 @@ export async function extractYouTubeTranscription(url: string): Promise<string> 
   try {
     const { YoutubeTranscript } = await import('youtube-transcript');
     const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-    return transcript.map((item: any) => item.text).join(' ');
+    return { text: transcript.map((item: any) => item.text).join(' '), fallback: false };
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'erro desconhecido';
-    console.warn(`[youtube-transcript] Vídeo ${videoId}: transcrição indisponível (${reason}). Usando fallback.`);
-    return '';
+    console.warn(`[youtube-transcript] Vídeo ${videoId}: transcrição indisponível (${reason}). Buscando metadados...`);
+    const metadata = await getYouTubeMetadata(videoId);
+    return { text: metadata, fallback: true };
   }
 }
 

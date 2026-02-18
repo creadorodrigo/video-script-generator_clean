@@ -130,7 +130,7 @@ export default function Home() {
               {warnings.map((w, i) => (
                 <p key={i} className="text-sm text-yellow-700">{w}</p>
               ))}
-              <p className="text-xs text-yellow-600 mt-2">Os roteiros foram gerados com os vídeos que possuíam legendas disponíveis.</p>
+              <p className="text-xs text-yellow-600 mt-2">Para melhor qualidade, use vídeos com legendas ativadas no YouTube.</p>
             </div>
           )}
 
