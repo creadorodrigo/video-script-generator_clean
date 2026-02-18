@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { jsonrepair } from 'jsonrepair';
 
 function getAnthropicClient() {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -58,7 +59,11 @@ RETORNE APENAS um objeto JSON válido (sem markdown):
   const jsonMatch = content.text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('JSON não encontrado na resposta');
 
-  return JSON.parse(jsonMatch[0]);
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch {
+    return JSON.parse(jsonrepair(jsonMatch[0]));
+  }
 }
 
 export async function generateScripts(
@@ -69,7 +74,7 @@ export async function generateScripts(
   const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 4000,
+    max_tokens: 8000,
     messages: [
       {
         role: 'user',
@@ -128,7 +133,11 @@ RETORNE APENAS um array JSON válido (sem markdown):
   const jsonMatch = content.text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error('Array JSON não encontrado');
 
-  return JSON.parse(jsonMatch[0]);
+  try {
+    return JSON.parse(jsonMatch[0]);
+  } catch {
+    return JSON.parse(jsonrepair(jsonMatch[0]));
+  }
 }
 
 async function getYouTubeMetadata(videoId: string): Promise<string> {
