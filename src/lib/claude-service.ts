@@ -150,6 +150,9 @@ export async function extractYouTubeTranscription(
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
     /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/shorts\/([^&\n?#]+)/,
+    /youtube\.com\/live\/([^&\n?#]+)/,
+    /m\.youtube\.com\/watch\?v=([^&\n?#]+)/,
   ];
 
   let videoId = '';
@@ -158,7 +161,10 @@ export async function extractYouTubeTranscription(
     if (match) { videoId = match[1]; break; }
   }
 
-  if (!videoId) throw new Error('ID do vídeo YouTube não encontrado');
+  if (!videoId) {
+    console.warn(`[youtube] URL não reconhecida: ${url}`);
+    return { text: '', fallback: true };
+  }
 
   try {
     const { YoutubeTranscript } = await import('youtube-transcript');
