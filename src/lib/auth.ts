@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
           } as any;
         } catch (error) {
-          console.error('Auth error:', error);
+          console.error('[AUTH] Erro ao autenticar usuário:', error);
           return null;
         }
       },
