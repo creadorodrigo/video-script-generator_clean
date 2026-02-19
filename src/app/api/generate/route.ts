@@ -98,33 +98,37 @@ export async function POST(request: NextRequest) {
 
     // 6. Buscar inteligência acumulada do usuário
     let inteligenciaAcumulada: { total_geracoes: number; roteiros_excelentes: any[] } | null = null;
-    const historicoRecente = await prisma.generatedScript.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: { scripts: true },
-    });
-
-    if (historicoRecente.length > 0) {
-      const roteirosExcelentes = historicoRecente.flatMap((h) => {
-        const scripts = h.scripts as any[];
-        return Array.isArray(scripts) ? scripts.filter((s) => s.score_aderencia >= 8.0).slice(0, 2) : [];
+    try {
+      const historicoRecente = await prisma.generatedScript.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { scripts: true },
       });
 
-      if (roteirosExcelentes.length > 0) {
-        inteligenciaAcumulada = {
-          total_geracoes: historicoRecente.length,
-          roteiros_excelentes: roteirosExcelentes.map((s) => ({
-            gancho: s.gancho?.texto,
-            tipo_gancho: s.gancho?.tipo,
-            estrutura: s.corpo?.estrutura,
-            cta_tipo: s.cta?.tipo,
-            score: s.score_aderencia,
-            notas: s.notas_criacao,
-          })),
-        };
-        console.log(`[generate] Inteligência acumulada: ${roteirosExcelentes.length} roteiros excelentes de ${historicoRecente.length} gerações anteriores`);
+      if (historicoRecente.length > 0) {
+        const roteirosExcelentes = historicoRecente.flatMap((h) => {
+          const scripts = h.scripts as any[];
+          return Array.isArray(scripts) ? scripts.filter((s) => s.score_aderencia >= 8.0).slice(0, 2) : [];
+        });
+
+        if (roteirosExcelentes.length > 0) {
+          inteligenciaAcumulada = {
+            total_geracoes: historicoRecente.length,
+            roteiros_excelentes: roteirosExcelentes.map((s) => ({
+              gancho: s.gancho?.texto,
+              tipo_gancho: s.gancho?.tipo,
+              estrutura: s.corpo?.estrutura,
+              cta_tipo: s.cta?.tipo,
+              score: s.score_aderencia,
+              notas: s.notas_criacao,
+            })),
+          };
+          console.log(`[generate] Inteligência acumulada: ${roteirosExcelentes.length} roteiros excelentes de ${historicoRecente.length} gerações anteriores`);
+        }
       }
+    } catch (historyError) {
+      console.warn('[generate] Não foi possível carregar inteligência acumulada (migration pendente?):', historyError instanceof Error ? historyError.message : historyError);
     }
 
     // 7. Gerar roteiros com Claude
