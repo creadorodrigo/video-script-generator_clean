@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 
 type Platform = 'instagram' | 'tiktok' | 'youtube';
 type DuracaoVideo = '15-30s' | '30-60s' | '60-90s' | '90s+';
@@ -17,8 +18,8 @@ interface Roteiro {
 }
 
 export default function Home() {
-  // ✅ REMOVIDO: useSession, useRouter, verificação de autenticação
-  
+  const { data: session } = useSession();
+
   const [videos, setVideos] = useState<VideoInput[]>([{ url: '', platform: 'youtube' }]);
   const [tema, setTema] = useState({ tipo: 'descricao', conteudo: '', publico_alvo: '', objetivo: '' });
   const [restricoes, setRestricoes] = useState('');
@@ -29,9 +30,6 @@ export default function Home() {
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState<string[]>([]);
 
-  // ✅ REMOVIDO: useEffect que redireciona para /login
-  // ✅ REMOVIDO: verificações de status de autenticação
-
   const updateVideoUrl = (index: number, url: string) => {
     const newVideos = [...videos];
     let platform: Platform = 'youtube';
@@ -41,7 +39,7 @@ export default function Home() {
     setVideos(newVideos);
   };
 
-  const canGenerate = () => videos.some(v => v.url.length > 0) && tema.conteudo.length >= 20;
+  const canGenerate = () => tema.conteudo.length >= 20;
 
   const handleGenerate = async () => {
     if (!canGenerate()) return;
@@ -233,9 +231,14 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">📹 Gerador de Roteiros</h1>
-            <p className="text-gray-600">Sistema aberto para testes</p>
+            {session?.user?.name && <p className="text-gray-500 text-sm mt-1">Olá, {session.user.name}</p>}
           </div>
-          {/* ✅ REMOVIDO: Botão de Sair */}
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600"
+          >
+            Sair
+          </button>
         </div>
 
         {error && (
@@ -247,8 +250,8 @@ export default function Home() {
         <div className="space-y-6">
           {/* Vídeos */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">📹 Vídeos de Referência</h2>
-            <p className="text-gray-600 mb-4">Cole até 5 links (YouTube, Instagram, TikTok):</p>
+            <h2 className="text-xl font-semibold mb-1">📹 Vídeos de Referência <span className="text-sm font-normal text-gray-400">(opcional)</span></h2>
+            <p className="text-gray-500 text-sm mb-4">Cole links de vídeos para extrair padrões. Sem vídeos, a IA usa seu histórico e melhores práticas.</p>
             <div className="space-y-3">
               {videos.map((video, index) => (
                 <div key={index} className="flex gap-2 items-center">

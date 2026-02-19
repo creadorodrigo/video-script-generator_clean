@@ -67,7 +67,7 @@ RETORNE APENAS um objeto JSON válido (sem markdown):
 }
 
 export async function generateScripts(
-  analysis: any,
+  analysis: any | null,
   theme: { tipo: string; conteudo: string; publico_alvo?: string; objetivo?: string },
   settings: { num_variacoes: number; duracao_video: string; plataforma_principal: string },
   restricoes_producao?: string,
@@ -85,6 +85,12 @@ Os roteiros abaixo já provaram ter alta performance (score ≥ 8.0). Use-os com
 ${JSON.stringify(inteligencia.roteiros_excelentes, null, 2)}\n`
     : '';
 
+  const padraoSection = analysis
+    ? `[PADRÕES VENCEDORES IDENTIFICADOS NOS VÍDEOS DE REFERÊNCIA]
+${JSON.stringify(analysis, null, 2)}`
+    : `[MODO SEM VÍDEOS DE REFERÊNCIA]
+Nenhum vídeo de referência foi fornecido. Use seu conhecimento como copywriter de elite e as melhores práticas consolidadas para ${settings.plataforma_principal === 'todas' ? 'todas as plataformas' : settings.plataforma_principal}: ganchos que param o scroll nos primeiros 3 segundos, estrutura problema-agitação-solução ou storytelling, CTAs diretos e urgentes.${inteligencia ? ' Priorize a inteligência acumulada do usuário como principal referência de estilo.' : ''}`;
+
   const anthropic = getAnthropicClient();
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -94,8 +100,7 @@ ${JSON.stringify(inteligencia.roteiros_excelentes, null, 2)}\n`
         role: 'user',
         content: `Você é um copywriter de elite com 15 anos de experiência criando roteiros de vídeos de alta conversão para as principais plataformas digitais. Você domina neuromarketing, storytelling estratégico e psicologia do consumidor. Cada palavra que você escreve é calculada para maximizar retenção e conversão. Você não cria conteúdo genérico — você cria roteiros que param o scroll e convertem.
 
-[PADRÕES VENCEDORES IDENTIFICADOS NOS VÍDEOS DE REFERÊNCIA]
-${JSON.stringify(analysis, null, 2)}
+${padraoSection}
 
 [PRODUTO/TEMA]
 ${theme.tipo === 'descricao' ? theme.conteudo : `Link do produto: ${theme.conteudo}`}
@@ -108,7 +113,7 @@ ${theme.objetivo ? `Objetivo principal: ${theme.objetivo}` : ''}
 - Variações solicitadas: ${settings.num_variacoes}
 ${restricoesSection}${inteligenciaSection}
 [MISSÃO]
-Crie ${settings.num_variacoes} roteiros DISTINTOS — cada um com uma abordagem, gancho e estrutura narrativa diferente. Aplique os padrões vencedores identificados. Cada roteiro deve ser pronto para gravar, com linguagem natural e fluida.
+Crie ${settings.num_variacoes} roteiros DISTINTOS — cada um com uma abordagem, gancho e estrutura narrativa diferente. Cada roteiro deve ser pronto para gravar, com linguagem natural e fluida.
 
 RETORNE APENAS um array JSON válido (sem markdown):
 [
