@@ -20,12 +20,12 @@ export async function analyzePatterns(transcriptions: { platform: string; text: 
     messages: [
       {
         role: 'user',
-        content: `Você é um estrategista de conteúdo viral com expertise em análise de padrões comportamentais em vídeos de alta performance. Sua análise deve ser cirúrgica e acionável — identifique apenas o que realmente faz esses vídeos converterem.
+        content: `Você é um estrategista de conteúdo viral com expertise em análise de padrões comportamentais e de produção em vídeos de alta performance. Sua análise deve ser cirúrgica e acionável — identifique apenas o que realmente faz esses vídeos converterem, incluindo elementos visuais, sonoros e de direção.
 
 VÍDEOS DE REFERÊNCIA:
 ${videosText}
 
-Analise esses ${transcriptions.length} vídeos e extraia os padrões vencedores com precisão estratégica.
+Analise esses ${transcriptions.length} vídeos e extraia os padrões vencedores com precisão estratégica, incluindo padrões de produção (ângulos, iluminação, ambiente e tom de voz) inferidos a partir do conteúdo e contexto dos vídeos.
 
 RETORNE APENAS um objeto JSON válido (sem markdown):
 {
@@ -47,6 +47,12 @@ RETORNE APENAS um objeto JSON válido (sem markdown):
     "tipo_dominante": "urgencia",
     "posicionamento_medio": "ultimos_5-7s",
     "exemplos": ["exemplo de CTA"]
+  },
+  "padroes_visuais": {
+    "angulos_camera": ["close-up frontal", "plano americano"],
+    "iluminacao": "natural suave com reflector lateral",
+    "ambiente": "home office minimalista com fundo neutro",
+    "tom_voz": "energético e urgente, ritmo acelerado"
   }
 }`,
       },
@@ -113,7 +119,7 @@ ${theme.objetivo ? `Objetivo principal: ${theme.objetivo}` : ''}
 - Variações solicitadas: ${settings.num_variacoes}
 ${restricoesSection}${inteligenciaSection}
 [MISSÃO]
-Crie ${settings.num_variacoes} roteiros DISTINTOS — cada um com uma abordagem, gancho e estrutura narrativa diferente. Cada roteiro deve ser pronto para gravar, com linguagem natural e fluida.
+Crie ${settings.num_variacoes} roteiros DISTINTOS — cada um com uma abordagem, gancho e estrutura narrativa diferente. Cada roteiro deve ser pronto para gravar, com linguagem natural e fluida. Para cada roteiro, inclua obrigatoriamente a seção "direcao_producao" com orientações específicas de ângulos de câmera para cada parte do vídeo, setup de iluminação, ambiente/cenário recomendado e tom de voz para entrega — tornando o roteiro um guia completo de gravação.
 
 RETORNE APENAS um array JSON válido (sem markdown):
 [
@@ -139,6 +145,16 @@ RETORNE APENAS um array JSON válido (sem markdown):
       "texto": "Texto do CTA aqui",
       "timing": "55-60s",
       "tipo": "urgencia"
+    },
+    "direcao_producao": {
+      "angulos_recomendados": {
+        "gancho": "Close-up extremo, câmera ao nível dos olhos, direto para a lente",
+        "corpo": "Plano americano ou busto, leve movimentação lateral para dinamismo",
+        "cta": "Close-up, olho direto na câmera, tom de proximidade"
+      },
+      "iluminacao": "Ring light frontal suave ou luz natural pela janela lateral sem sombras duras",
+      "ambiente": "Fundo neutro ou ambiente organizado relevante ao tema, sem distrações visuais",
+      "tom_voz": "Gancho energético e direto, corpo didático e confiante, CTA urgente e pessoal"
     },
     "notas_criacao": "Explicação estratégica de por que este roteiro converte"
   }

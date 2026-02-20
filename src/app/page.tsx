@@ -14,6 +14,12 @@ interface Roteiro {
   gancho: { texto: string; timing: string; tipo?: string };
   corpo: { texto: string; timing: string; estrutura?: string; pontos_principais?: string[] };
   cta: { texto: string; timing: string; tipo?: string };
+  direcao_producao?: {
+    angulos_recomendados?: { gancho?: string; corpo?: string; cta?: string };
+    iluminacao?: string;
+    ambiente?: string;
+    tom_voz?: string;
+  };
   notas_criacao: string;
 }
 
@@ -80,7 +86,13 @@ export default function Home() {
   };
 
   const copyScript = (roteiro: Roteiro) => {
-    const text = `ROTEIRO #${roteiro.numero} - ${roteiro.titulo}\n\nGANCHO (${roteiro.gancho.timing}):\n${roteiro.gancho.texto}\n\nCORPO (${roteiro.corpo.timing}):\n${roteiro.corpo.texto}\n\nCTA (${roteiro.cta.timing}):\n${roteiro.cta.texto}`;
+    const direcao = roteiro.direcao_producao;
+    const direcaoText = direcao ? `\n\n--- DIREÇÃO DE PRODUÇÃO ---\n${
+      direcao.angulos_recomendados
+        ? `📷 ÂNGULOS:\n  Gancho: ${direcao.angulos_recomendados.gancho || '-'}\n  Corpo: ${direcao.angulos_recomendados.corpo || '-'}\n  CTA: ${direcao.angulos_recomendados.cta || '-'}`
+        : ''
+    }\n${direcao.iluminacao ? `💡 ILUMINAÇÃO: ${direcao.iluminacao}` : ''}\n${direcao.ambiente ? `🏠 AMBIENTE: ${direcao.ambiente}` : ''}\n${direcao.tom_voz ? `🎙️ TOM DE VOZ: ${direcao.tom_voz}` : ''}` : '';
+    const text = `ROTEIRO #${roteiro.numero} - ${roteiro.titulo}\n\nGANCHO (${roteiro.gancho.timing}):\n${roteiro.gancho.texto}\n\nCORPO (${roteiro.corpo.timing}):\n${roteiro.corpo.texto}\n\nCTA (${roteiro.cta.timing}):\n${roteiro.cta.texto}${direcaoText}`;
     navigator.clipboard.writeText(text);
     alert('Roteiro copiado!');
   };
@@ -137,7 +149,7 @@ export default function Home() {
           {/* Análise */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">📊 Padrões Identificados</h2>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-4 mb-4">
               <div className="border-l-4 border-blue-500 pl-4">
                 <h3 className="font-semibold text-blue-700 mb-2">🎣 Ganchos</h3>
                 {results.analise_consolidada?.padroes_ganchos?.map((g: any, i: number) => (
@@ -155,6 +167,39 @@ export default function Home() {
                 <p className="text-sm text-gray-700">• {results.analise_consolidada?.padroes_cta?.posicionamento_medio}</p>
               </div>
             </div>
+            {results.analise_consolidada?.padroes_visuais && (
+              <div className="border-t pt-4 mt-2">
+                <h3 className="font-semibold text-gray-700 mb-3">🎬 Padrões de Produção</h3>
+                <div className="grid md:grid-cols-4 gap-3">
+                  {results.analise_consolidada.padroes_visuais.angulos_camera?.length > 0 && (
+                    <div className="bg-slate-50 rounded p-3">
+                      <p className="text-xs font-semibold text-slate-600 mb-1">📷 Ângulos</p>
+                      {results.analise_consolidada.padroes_visuais.angulos_camera.map((a: string, i: number) => (
+                        <p key={i} className="text-xs text-gray-700">• {a}</p>
+                      ))}
+                    </div>
+                  )}
+                  {results.analise_consolidada.padroes_visuais.iluminacao && (
+                    <div className="bg-yellow-50 rounded p-3">
+                      <p className="text-xs font-semibold text-yellow-700 mb-1">💡 Iluminação</p>
+                      <p className="text-xs text-gray-700">{results.analise_consolidada.padroes_visuais.iluminacao}</p>
+                    </div>
+                  )}
+                  {results.analise_consolidada.padroes_visuais.ambiente && (
+                    <div className="bg-green-50 rounded p-3">
+                      <p className="text-xs font-semibold text-green-700 mb-1">🏠 Ambiente</p>
+                      <p className="text-xs text-gray-700">{results.analise_consolidada.padroes_visuais.ambiente}</p>
+                    </div>
+                  )}
+                  {results.analise_consolidada.padroes_visuais.tom_voz && (
+                    <div className="bg-pink-50 rounded p-3">
+                      <p className="text-xs font-semibold text-pink-700 mb-1">🎙️ Tom de Voz</p>
+                      <p className="text-xs text-gray-700">{results.analise_consolidada.padroes_visuais.tom_voz}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Roteiros */}
@@ -205,6 +250,48 @@ export default function Home() {
                     {roteiro.cta.tipo && <p className="text-xs text-gray-500 mt-1">Tipo: {roteiro.cta.tipo}</p>}
                   </div>
                 </div>
+
+                {roteiro.direcao_producao && (
+                  <div className="mt-4 border border-slate-200 rounded-lg p-4 bg-slate-50">
+                    <h4 className="font-semibold text-slate-700 mb-3">🎬 Direção de Produção</h4>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {roteiro.direcao_producao.angulos_recomendados && (
+                        <div>
+                          <p className="text-xs font-semibold text-slate-600 mb-1">📷 Ângulos de Câmera</p>
+                          {roteiro.direcao_producao.angulos_recomendados.gancho && (
+                            <p className="text-xs text-gray-700"><span className="font-medium">Gancho:</span> {roteiro.direcao_producao.angulos_recomendados.gancho}</p>
+                          )}
+                          {roteiro.direcao_producao.angulos_recomendados.corpo && (
+                            <p className="text-xs text-gray-700 mt-1"><span className="font-medium">Corpo:</span> {roteiro.direcao_producao.angulos_recomendados.corpo}</p>
+                          )}
+                          {roteiro.direcao_producao.angulos_recomendados.cta && (
+                            <p className="text-xs text-gray-700 mt-1"><span className="font-medium">CTA:</span> {roteiro.direcao_producao.angulos_recomendados.cta}</p>
+                          )}
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        {roteiro.direcao_producao.iluminacao && (
+                          <div>
+                            <p className="text-xs font-semibold text-yellow-700">💡 Iluminação</p>
+                            <p className="text-xs text-gray-700">{roteiro.direcao_producao.iluminacao}</p>
+                          </div>
+                        )}
+                        {roteiro.direcao_producao.ambiente && (
+                          <div>
+                            <p className="text-xs font-semibold text-green-700">🏠 Ambiente</p>
+                            <p className="text-xs text-gray-700">{roteiro.direcao_producao.ambiente}</p>
+                          </div>
+                        )}
+                        {roteiro.direcao_producao.tom_voz && (
+                          <div>
+                            <p className="text-xs font-semibold text-pink-700">🎙️ Tom de Voz</p>
+                            <p className="text-xs text-gray-700">{roteiro.direcao_producao.tom_voz}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {roteiro.notas_criacao && (
                   <div className="p-3 bg-gray-50 rounded border-l-4 border-gray-300 mb-4">
