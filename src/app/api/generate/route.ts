@@ -133,8 +133,9 @@ export async function POST(request: NextRequest) {
 
     // 7. Gerar roteiros com Claude
     console.log('[generate] Chamando generateScripts...');
-    const scripts = await generateScripts(analysis, novo_tema, configuracoes, restricoes_producao, inteligenciaAcumulada);
-    console.log('[generate] generateScripts concluído');
+    const rawScripts = await generateScripts(analysis, novo_tema, configuracoes, restricoes_producao, inteligenciaAcumulada);
+    const scripts = rawScripts.filter((s: any) => s?.gancho?.texto && s?.corpo?.texto && s?.cta?.texto);
+    console.log(`[generate] generateScripts concluído — ${scripts.length}/${rawScripts.length} roteiros válidos`);
 
     // 8. Salvar no banco
     const savedResult = await prisma.generatedScript.create({

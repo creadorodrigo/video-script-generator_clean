@@ -221,20 +221,20 @@ export default function Home() {
                   <div className="border-l-4 border-blue-500 pl-4">
                     <div className="flex justify-between items-center mb-1">
                       <h4 className="font-semibold text-blue-700">🎣 GANCHO</h4>
-                      <span className="text-xs text-gray-500">{roteiro.gancho.timing}</span>
+                      <span className="text-xs text-gray-500">{roteiro.gancho?.timing}</span>
                     </div>
-                    <p className="text-gray-700">{roteiro.gancho.texto}</p>
-                    {roteiro.gancho.tipo && <p className="text-xs text-gray-500 mt-1">Tipo: {roteiro.gancho.tipo}</p>}
+                    <p className="text-gray-700">{roteiro.gancho?.texto}</p>
+                    {roteiro.gancho?.tipo && <p className="text-xs text-gray-500 mt-1">Tipo: {roteiro.gancho.tipo}</p>}
                   </div>
 
                   <div className="border-l-4 border-purple-500 pl-4">
                     <div className="flex justify-between items-center mb-1">
                       <h4 className="font-semibold text-purple-700">📝 CORPO</h4>
-                      <span className="text-xs text-gray-500">{roteiro.corpo.timing}</span>
+                      <span className="text-xs text-gray-500">{roteiro.corpo?.timing}</span>
                     </div>
-                    <p className="text-gray-700">{roteiro.corpo.texto}</p>
-                    {roteiro.corpo.estrutura && <p className="text-xs text-gray-500 mt-1">Estrutura: {roteiro.corpo.estrutura}</p>}
-                    {roteiro.corpo.pontos_principais && (
+                    <p className="text-gray-700">{roteiro.corpo?.texto}</p>
+                    {roteiro.corpo?.estrutura && <p className="text-xs text-gray-500 mt-1">Estrutura: {roteiro.corpo.estrutura}</p>}
+                    {roteiro.corpo?.pontos_principais && (
                       <ul className="text-sm text-gray-600 mt-2 list-disc list-inside">
                         {roteiro.corpo.pontos_principais.map((p, i) => <li key={i}>{p}</li>)}
                       </ul>
@@ -244,10 +244,10 @@ export default function Home() {
                   <div className="border-l-4 border-orange-500 pl-4">
                     <div className="flex justify-between items-center mb-1">
                       <h4 className="font-semibold text-orange-700">🎯 CTA</h4>
-                      <span className="text-xs text-gray-500">{roteiro.cta.timing}</span>
+                      <span className="text-xs text-gray-500">{roteiro.cta?.timing}</span>
                     </div>
-                    <p className="text-gray-700">{roteiro.cta.texto}</p>
-                    {roteiro.cta.tipo && <p className="text-xs text-gray-500 mt-1">Tipo: {roteiro.cta.tipo}</p>}
+                    <p className="text-gray-700">{roteiro.cta?.texto}</p>
+                    {roteiro.cta?.tipo && <p className="text-xs text-gray-500 mt-1">Tipo: {roteiro.cta.tipo}</p>}
                   </div>
                 </div>
 
